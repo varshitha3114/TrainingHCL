@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Table</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 30px;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 10px;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    a {
+      color: blue;
+      text-decoration: underline;
+    }
+
+    #loading {
+      color: blue;
+      font-size: 18px;
+    }
+
+    #error {
+      color: red;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+<h2>User List</h2>
+
+<div id="loading">Loading users...</div>
+<div id="error"></div>
+
+<table id="userTable" style="display:none;">
+  <thead>
+    
+    <tr>
+      <th rowspan="3">ID</th>
+      <th rowspan="3">Name</th>
+      <th rowspan="3">Email</th>
+      <th rowspan="3">Phone</th>
+      <th colspan="4">Address</th>
+      <th colspan="2">Geo</th>
+    </tr>
+
+    
+    <tr>
+      <th>Street</th>
+      <th>Suite</th>
+      <th>City</th>
+      <th>Zipcode</th>
+      <th>Lat</th>
+      <th>Lng</th>
+    </tr>
+  </thead>
+
+  <tbody></tbody>
+</table>
+
+<script>
+async function loadUsers() {
+  const loading = document.getElementById("loading");
+  const table = document.getElementById("userTable");
+  const tbody = table.querySelector("tbody");
+
+  try {
+    const res = await fetch("https://jsonplaceholder.typicode.com/users");
+    const apiUsers = await res.json();
+
+    const localUsers = JSON.parse(localStorage.getItem("users")) || [];
+    const allUsers = [...apiUsers, ...localUsers];
+
+    allUsers.forEach(user => {
+      const lat = user.address.geo.lat;
+      const lng = user.address.geo.lng;
+      const mapLink = `https://www.google.com/maps?q=${lat},${lng}`;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${user.id}</td>
+        <td>${user.name}</td>
+        <td>${user.email}</td>
+        <td>${user.phone}</td>
+        <td>${user.address.street}</td>
+        <td>${user.address.suite}</td>
+        <td>${user.address.city}</td>
+        <td>${user.address.zipcode}</td>
+        <td><a href="${mapLink}" target="_blank">${lat}</a></td>
+        <td><a href="${mapLink}" target="_blank">${lng}</a></td>
+      `;
+      tbody.appendChild(row);
+    });
+
+    table.style.display = "table";
+  } catch (err) {
+    document.getElementById("error").textContent = err.message;
+  } finally {
+    loading.style.display = "none";
+  }
+}
+
+loadUsers();
+</script>
+
+
+</body>
+</html>
